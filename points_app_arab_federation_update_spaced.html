@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Points Tracker</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #e0eafc, #cfdef3);
+      min-height: 100vh;
+    }
+    .player {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    input {
+      padding: 6px;
+      margin-bottom: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1565c0;
+    }
+    
+    body { font-family: Arial; padding: 20px; direction: ltr; }
+    .player { margin: 10px 0; border-bottom: 1px solid #ccc; padding: 10px 0; }
+    .points { font-weight: bold; margin-right: 10px; font-size: 1.2em; }
+    button { margin-right: 5px; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <h1 style="font-family:serif; font-size: 2em; color: darkblue; text-shadow: 1px 1px 2px #888;">★ Arab Federation ★</h1><h2>Points Tracker</h2>
+  <input type="text" id="nameInput" placeholder="Enter name" />
+  <button onclick="addPlayer()">Add</button>
+  <button onclick="saveData()">Save</button><br><br>
+
+  <input type="text" id="searchInput" placeholder="Search player..." />
+  <button onclick="searchPlayer()">Search</button>
+
+  <div id="players"></div>
+
+  <script>
+    let players = [];
+
+    function loadData() {
+      const saved = localStorage.getItem('players');
+      if (saved) {
+        players = JSON.parse(saved);
+        renderPlayers();
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('players', JSON.stringify(players));
+      alert("Saved successfully!");
+    }
+
+    function addPlayer() {
+      const name = document.getElementById('nameInput').value.trim();
+      if (name) {
+        players.push({ name: name, star: 0, sparkle: 0 });
+        document.getElementById('nameInput').value = '';
+        renderPlayers();
+      }
+    }
+
+    function deletePlayer(index) {
+      if (confirm("Are you sure you want to delete this player?")) {
+        players.splice(index, 1);
+        renderPlayers();
+      }
+    }
+
+    function addStar(index) {
+      players[index].star++;
+      players[index].sparkle += 3;
+      renderPlayers();
+    }
+
+    function removeStar(index) {
+      if (players[index].star > 0) {
+        players[index].star--;
+        renderPlayers();
+      }
+    }
+
+    function addSparkle(index) {
+      players[index].sparkle++;
+      renderPlayers();
+    }
+
+    function removeSparkle(index) {
+      if (players[index].sparkle > 0) {
+        players[index].sparkle--;
+        renderPlayers();
+      }
+    }
+
+    function renderPlayers() {
+      const container = document.getElementById('players');
+      container.innerHTML = '';
+      const sortedPlayers = [...players].sort((a, b) => b.sparkle - a.sparkle || b.star - a.star);
+      sortedPlayers.forEach((player, index) => {
+        const div = document.createElement('div');
+        div.className = 'player';
+        div.id = 'player-' + player.name.replace(/\s+/g, '-');
+        div.innerHTML = `
+          <strong>#${index + 1}</strong> - <span style="font-size: 1.5em; font-weight: bold;" id="name-${index}">${player.name}</span> <button onclick="editName(${players.indexOf(player)})" style="font-size:10px; margin-left: 10px;">✏️ Update</button><br>
+          <span class="points">Championships ${player.star} <button onclick="removeStar(${players.indexOf(player)})" style="font-size:10px;padding:2px 4px;">-</button></span>
+          <button onclick="addStar(${players.indexOf(player)})">+Championships</button>
+          
+          <span class="points">Total ${player.sparkle} <button onclick="removeSparkle(${players.indexOf(player)})" style="font-size:10px;padding:2px 4px;">-</button></span>
+          <button onclick="addSparkle(${players.indexOf(player)})">+Total</button>
+          
+          <button onclick="deletePlayer(${players.indexOf(player)})" style="color:red">&#x274C;</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function searchPlayer() {
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      if (!query) return;
+      const match = players.find(p => p.name.toLowerCase().includes(query));
+      if (match) {
+        const id = 'player-' + match.name.replace(/\s+/g, '-');
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.style.background = "#ffffcc";
+          setTimeout(() => { el.style.background = ""; }, 1500);
+        }
+      } else {
+        alert("Player not found.");
+      }
+    }
+
+    
+    function editName(index) {
+      const newName = prompt("Enter new name:", players[index].name);
+      if (newName && newName.trim() !== "") {
+        players[index].name = newName.trim();
+        renderPlayers();
+      }
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>
